@@ -193,6 +193,14 @@ func (b *Bridge) command(ctx context.Context, core string, args ...string) (*exe
 	if err != nil {
 		return nil, fmt.Errorf("创建应用数据目录失败：%w", err)
 	}
+	// cmd.Dir changes how a relative core path is resolved, and the core is found
+	// relative to the window's working directory. Pin it down before changing Dir.
+	if !filepath.IsAbs(core) {
+		core, err = filepath.Abs(core)
+		if err != nil {
+			return nil, fmt.Errorf("解析 Rust 核心路径失败：%w", err)
+		}
+	}
 	cmd := exec.CommandContext(ctx, core, args...)
 	cmd.Dir = dataDir
 	return cmd, nil

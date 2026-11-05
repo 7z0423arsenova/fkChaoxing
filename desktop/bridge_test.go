@@ -92,7 +92,14 @@ func TestCoursesUsesAbsoluteConfigAndPersistentDataDirectory(t *testing.T) {
 	dataDir := t.TempDir()
 	mygo.App.SetPath(mygo.PathUserData, dataDir)
 	t.Cleanup(func() { mygo.App.SetPath(mygo.PathUserData, "") })
-	config := filepath.Join(t.TempDir(), "config.ini")
+	// Keep the config on the same volume as the working directory: filepath.Rel
+	// cannot make a path on another Windows drive relative.
+	configDir, err := os.MkdirTemp(mustWorkingDirectory(t), ".config-test-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(configDir) })
+	config := filepath.Join(configDir, "config.ini")
 	relative, err := filepath.Rel(mustWorkingDirectory(t), config)
 	if err != nil {
 		t.Fatal(err)
