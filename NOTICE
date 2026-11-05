@@ -1,0 +1,23 @@
+fkChaoxing 第三方来源说明
+=========================
+
+本项目以 GPL-3.0 许可证发布，许可证全文见 LICENSE。
+
+架构、任务流程与设计参考
+------------------------
+
+- 项目：Samueli924/chaoxing
+- 地址：https://github.com/Samueli924/chaoxing
+- 许可证：GPL-3.0
+- 说明：本项目的整体架构、任务流程和部分实现设计参考了该项目。
+
+数据集
+------
+
+- 文件：resource/font_map_table.json
+- 来源：Samueli924/chaoxing 的 resource/font_map_table.json
+- 地址：https://github.com/Samueli924/chaoxing/blob/main/resource/font_map_table.json
+- 许可证：GPL-3.0
+- 说明：字体字符与哈希值的映射数据，用于解析学习通的加密字体。
+
+本项目是独立的 Rust + MyGo 实现，不是 Samueli924/chaoxing 的官方分支。

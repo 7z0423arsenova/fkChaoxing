@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fkChaoxing</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", "PingFang SC", sans-serif;
+      --bg: #eef2f8; --surface: #fff; --surface-2: #f7f9fc; --line: #e0e7f0; --line-strong: #cbd6e4;
+      --text: #17253a; --dim: #67778d; --faint: #94a3b8;
+      --accent: #2f6fed; --accent-soft: #eaf1ff; --accent-line: #bcd2fb;
+      --ok: #15803d; --ok-soft: #e6f6ec; --ok-line: #b7e4c7;
+      --warn: #9a6700; --warn-soft: #fff5d9; --warn-line: #f1d48a;
+      --err: #b42318; --err-soft: #feeceb; --err-line: #f6c3bf;
+      --shadow: 0 12px 34px rgba(31, 55, 92, .07);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(1200px 500px at 15% -10%, #fff 0, #eef2f8 55%, #e9eef7 100%); color: var(--text); }
+    button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    input, textarea, select { font: inherit; }
+    .app { max-width: 1180px; margin: 0 auto; padding: 24px 24px 44px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 11px; background: linear-gradient(145deg, #4d86f7, #2f6fed); color: #fff; font-weight: 800; font-size: 14px; letter-spacing: -.04em; box-shadow: 0 6px 14px rgba(47, 111, 237, .25); }
+    .brand h1 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    .brand p { margin: 2px 0 0; color: var(--dim); font-size: 12px; }
+    .config-badge { display: inline-flex; align-items: center; gap: 7px; max-width: 420px; margin-left: 6px; padding: 5px 10px; border-radius: 999px; background: #e8edf5; color: var(--dim); font-size: 11px; }
+    .config-badge span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+    .top-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+    .ghost-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 600; box-shadow: 0 2px 5px rgba(31, 55, 92, .04); }
+    .ghost-btn:hover { border-color: #aebdd0; background: #fbfcfe; }
+    .ghost-btn svg { width: 15px; height: 15px; }
+    .workspace { display: grid; grid-template-columns: 304px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px 12px; }
+    .panel-head h2 { margin: 0; font-size: 15px; font-weight: 750; letter-spacing: -.01em; }
+    .icon-btn { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; color: var(--dim); border: 1px solid transparent; }
+    .icon-btn:hover:not(:disabled) { background: var(--surface-2); border-color: var(--line); color: var(--text); }
+    .icon-btn:disabled { opacity: .45; cursor: wait; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .select-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 18px 12px; color: var(--dim); font-size: 12px; }
+    .select-row label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+    input[type="checkbox"] { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+    .course-list { display: grid; gap: 10px; padding: 0 14px 16px; max-height: min(58vh, 610px); overflow-y: auto; }
+    .course-card { position: relative; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+    .course-card:hover { border-color: var(--line-strong); }
+    .course-card.is-selected { border-color: var(--accent-line); background: linear-gradient(180deg, #f7faff, #eef4ff); box-shadow: 0 4px 12px rgba(47, 111, 237, .07); }
+    .course-card input { margin-top: 2px; }
+    .course-card.is-locked { cursor: default; }
+    .course-main { min-width: 0; }
+    .course-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .course-title { font-size: 13px; font-weight: 700; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .course-meta { margin-top: 4px; color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .course-bar { height: 4px; margin-top: 9px; border-radius: 99px; background: #e9eef6; overflow: hidden; }
+    .course-bar span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .4s ease; }
+    .course-bar.is-done span { background: #34a565; }
+    .course-bar.is-warn span { background: #e0a317; }
+    .course-count { margin-top: 5px; color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .status-pill { display: inline-flex; align-items: center; gap: 5px; flex: none; padding: 3px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #eef2f8; color: var(--dim); }
+    .status-pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .status-pill.is-running { background: var(--accent-soft); color: var(--accent); }
+    .status-pill.is-done { background: var(--ok-soft); color: var(--ok); }
+    .status-pill.is-warn { background: var(--warn-soft); color: var(--warn); }
+    .status-pill.is-failed { background: var(--err-soft); color: var(--err); }
+    .empty { padding: 34px 18px; text-align: center; color: var(--faint); font-size: 12px; line-height: 1.7; }
+    .right-column { display: grid; gap: 16px; min-width: 0; }
+    .status-card { padding: 16px 18px 0; overflow: hidden; }
+    .status-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; background: #eef2f8; color: var(--dim); font-size: 12px; font-weight: 700; }
+    .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .chip.running { background: var(--accent-soft); color: var(--accent); }
+    .chip.running::before { animation: pulse 1.4s ease-in-out infinite; }
+    .chip.done { background: var(--ok-soft); color: var(--ok); }
+    .chip.failed { background: var(--err-soft); color: var(--err); }
+    .chip.stopped { background: #eef2f8; color: var(--dim); }
+    @keyframes pulse { 50% { opacity: .25; } }
+    .status-copy { color: var(--dim); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .status-counts { display: flex; gap: 6px; margin-left: auto; }
+    .count { padding: 4px 9px; border-radius: 999px; background: #f1f5fa; color: var(--dim); font-size: 11px; font-weight: 650; }
+    .count.warn.on { background: var(--warn-soft); color: var(--warn); }
+    .count.error.on { background: var(--err-soft); color: var(--err); }
+    .primary-btn { min-width: 76px; padding: 9px 18px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; box-shadow: 0 5px 14px rgba(47, 111, 237, .24); }
+    .primary-btn:hover:not(:disabled) { background: #2a63d8; }
+    .primary-btn:disabled { opacity: .6; cursor: wait; }
+    .primary-btn.is-stop { background: #e34b40; box-shadow: 0 5px 14px rgba(227, 75, 64, .22); }
+    .primary-btn.is-stop:hover:not(:disabled) { background: #cf3d33; }
+    .overall-bar { height: 6px; margin: 14px -18px 0; background: #edf1f7; }
+    .overall-bar span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #5b8ef5, #2f6fed); transition: width .4s ease; }
+    .is-done .overall-bar span { background: #34a565; }
+    .is-failed .overall-bar span { background: #e34b40; }
+    .status-note { min-height: 0; margin: 0 -18px; padding: 0 18px; color: var(--dim); font-size: 12px; line-height: 1.6; }
+    .status-note:not(:empty) { padding: 10px 18px; border-top: 1px solid var(--line); background: var(--surface-2); }
+    .status-note.error { color: var(--err); background: var(--err-soft); border-color: var(--err-line); }
+    .log-panel { overflow: hidden; }
+    .log-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 10px; flex-wrap: wrap; }
+    .log-head h2 { margin: 0; font-size: 14px; font-weight: 750; }
+    .log-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .seg { display: inline-flex; padding: 2px; border-radius: 9px; background: #f0f4fa; }
+    .seg button { padding: 5px 11px; border-radius: 7px; color: var(--dim); font-size: 11.5px; font-weight: 600; }
+    .seg button[aria-pressed="true"] { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(20, 40, 70, .14); }
+    .link-btn { padding: 5px 9px; border-radius: 7px; color: var(--accent); font-size: 11.5px; font-weight: 600; }
+    .link-btn:hover:not(:disabled) { background: var(--accent-soft); }
+    .link-btn:disabled { color: var(--faint); cursor: default; }
+    .task-progress-list { display: grid; gap: 8px; padding: 4px 16px 12px; border-bottom: 1px solid var(--line); }
+    .task-progress-list[hidden] { display: none; }
+    .task-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font-size: 11.5px; }
+    .task-progress .task-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+    .task-progress .task-value { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 650; }
+    .task-progress progress { grid-column: 1 / -1; width: 100%; height: 5px; appearance: none; border: 0; border-radius: 99px; overflow: hidden; background: #e9eef6; }
+    .task-progress progress::-webkit-progress-bar { background: #e9eef6; border-radius: 99px; }
+    .task-progress progress::-webkit-progress-value { background: var(--accent); border-radius: 99px; }
+    .task-progress progress::-moz-progress-bar { background: var(--accent); border-radius: 99px; }
+    .log-wrap { position: relative; }
+    .log-body { max-height: min(56vh, 620px); min-height: 230px; overflow-y: auto; padding: 2px 12px 12px; font-size: 12.5px; line-height: 1.55; overscroll-behavior: contain; }
+    .log-body:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .log-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--faint); font-size: 12.5px; pointer-events: none; }
+    .log-empty[hidden] { display: none; }
+    .log-jump { position: absolute; right: 16px; bottom: 14px; padding: 6px 13px; border-radius: 999px; background: var(--text); color: var(--surface); font-size: 11.5px; box-shadow: 0 4px 14px rgba(20, 40, 70, .28); }
+    .log-jump[hidden] { display: none; }
+    .chapter { border: 1px solid var(--line); border-radius: 11px; background: var(--surface); margin-top: 8px; overflow: hidden; }
+    .chapter[hidden] { display: none; }
+    .chapter.is-running { border-color: var(--accent-line); }
+    .chapter-head { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; text-align: left; }
+    .chapter-head:hover { background: var(--surface-2); }
+    .chevron { width: 8px; height: 8px; border-right: 1.6px solid var(--faint); border-bottom: 1.6px solid var(--faint); transform: rotate(-45deg); transition: transform .15s; margin-left: 2px; }
+    .chapter.is-open .chevron { transform: rotate(45deg); }
+    .chapter-title { min-width: 0; }
+    .chapter-title strong { display: block; font-size: 12.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chapter-title small { display: block; margin-top: 2px; color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chapter-body { border-top: 1px solid var(--line); background: #fbfcfe; padding: 7px 10px 9px 36px; }
+    .answer-row { display: grid; grid-template-columns: 56px auto minmax(0, 1fr); gap: 8px; align-items: start; padding: 5px 2px; font-size: 11.5px; }
+    .answer-row .time { color: var(--faint); font: 10.5px/1.7 var(--mono); font-variant-numeric: tabular-nums; }
+    .answer-row .src { align-self: start; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+    .answer-row .src.is-random { background: var(--warn-soft); color: var(--warn); }
+    .answer-row .desc { color: var(--text); overflow-wrap: anywhere; }
+    .answer-row .desc em { color: var(--dim); font-style: normal; }
+    .answer-row .q { display: block; margin-top: 1px; color: var(--faint); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .issue-row { padding: 6px 2px; color: var(--warn); font-size: 11.5px; overflow-wrap: anywhere; }
+    .issue-row.is-error { color: var(--err); }
+    .issue-row .time { margin-right: 8px; color: var(--faint); font: 10.5px var(--mono); }
+    .chapter-note { padding: 6px 2px; color: var(--faint); font-size: 11.5px; }
+    .reveal { margin: 10px 0 0; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); overflow: hidden; }
+    .reveal summary { padding: 11px 14px; cursor: pointer; font-size: 12.5px; font-weight: 650; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+    .reveal summary::-webkit-details-marker { display: none; }
+    .reveal summary::after { content: "›"; color: var(--faint); transform: rotate(90deg); transition: transform .15s; }
+    .reveal[open] summary::after { transform: rotate(-90deg); }
+    .reveal .reveal-body { padding: 0 14px 16px; border-top: 1px solid var(--line); }
+    .settings { margin-bottom: 18px; }
+    .settings[hidden] { display: none; }
+    .settings .panel-head { padding-bottom: 6px; }
+    .config-row { display: flex; gap: 9px; padding: 0 18px 12px; }
+    .config-row input { flex: 1; min-width: 0; }
+    .field { margin-bottom: 15px; }
+    .field label, .field-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 650; }
+    .hint { margin: 6px 0 0; color: var(--dim); font-size: 11.5px; line-height: 1.6; }
+    .setup-intro { margin: 0 0 16px; color: var(--dim); font-size: 12.5px; line-height: 1.65; }
+    .setup-step { display: inline-block; margin: 0 18px 6px; color: var(--accent); font-size: 11px; font-weight: 750; letter-spacing: .02em; }
+    .settings h2 { font-size: 16px; }
+    .settings form { padding: 0 18px 18px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    input:not([type="checkbox"]), textarea, select { width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--text); outline: none; }
+    input:not([type="checkbox"]):focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47, 111, 237, .14); }
+    textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+    details.setup-group { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+    details.setup-group summary { cursor: pointer; font-size: 12.5px; font-weight: 650; }
+    details.setup-group > *:not(summary) { margin-top: 12px; }
+    .actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+    .actions button { padding: 9px 18px; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; }
+    .actions button:disabled { opacity: .6; cursor: wait; }
+    .secondary { padding: 9px 14px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+    .secondary:hover:not(:disabled) { background: var(--surface-2); }
+    .check { display: inline-flex; align-items: center; gap: 7px; margin: 0; color: var(--dim); font-size: 12px; font-weight: 400; cursor: pointer; }
+    .result { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); white-space: pre-wrap; line-height: 1.6; font-size: 12px; }
+    .result.error { color: var(--err); background: var(--err-soft); }
+    .result:empty { display: none; }
+    .query-form { padding: 14px; }
+    .query-form .grid { gap: 10px; }
+    .query-form .actions { margin-top: 4px; }
+    .log-file { margin: 0; padding: 9px 16px; border-top: 1px solid var(--line); color: var(--faint); font-size: 11px; overflow-wrap: anywhere; background: var(--surface-2); }
+    .log-file[hidden] { display: none; }
+    .log-file code { font: 11px var(--mono); user-select: all; }
+    .hidden { display: none !important; }
+    @media (prefers-reduced-motion: reduce) { .chip.running::before { animation: none; } * { transition: none !important; } }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .course-list { max-height: 300px; }
+      .config-badge { display: none; }
+    }
+    @media (max-width: 560px) {
+      .app { padding: 16px 12px 30px; }
+      .grid { grid-template-columns: 1fr; gap: 0; }
+      .status-counts { margin-left: 0; }
+      .log-head { align-items: flex-start; flex-direction: column; }
+      .answer-row { grid-template-columns: 48px auto minmax(0, 1fr); }
+      .chapter-body { padding-left: 12px; }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0f1722; --surface: #18222f; --surface-2: #1d2938; --line: #2c3b4e; --line-strong: #40536b;
+        --text: #e4ecf7; --dim: #9dafc5; --faint: #7d90a7;
+        --accent: #7aa5ff; --accent-soft: #22334e; --accent-line: #35507a;
+        --ok: #7fd8a6; --ok-soft: #1b3a2a; --ok-line: #2f5c43;
+        --warn: #f0c56b; --warn-soft: #3a2f14; --warn-line: #5c4a1d;
+        --err: #ffb4ab; --err-soft: #3d2326; --err-line: #5e3438;
+        --shadow: 0 12px 34px rgba(0, 0, 0, .3); }
+      body { background: radial-gradient(1200px 500px at 15% -10%, #1a2635 0, #0f1722 60%, #0c131c 100%); }
+      .seg { background: #223044; }
+      .seg button[aria-pressed="true"] { background: #31445c; box-shadow: none; }
+      .config-badge { background: #223044; }
+      .course-card.is-selected { background: linear-gradient(180deg, #1d2c42, #1a2a40); }
+      .chapter-body { background: #141f2b; }
+      .log-jump { color: #0f1722; }
+      .secondary { background: var(--surface); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">fk</div>
+        <div>
+          <h1>fkChaoxing</h1>
+          <p>课程任务台</p>
+        </div>
+        <span class="config-badge" id="config-badge" hidden><span id="config-badge-text"></span></span>
+      </div>
+      <div class="top-actions">
+        <button id="settings-toggle" class="ghost-btn" type="button" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.4"/><circle cx="8" cy="17" r="2.4"/></svg>
+          设置
+        </button>
+      </div>
+    </header>
+
+    <section id="setup" class="panel settings" hidden>
+      <div class="panel-head">
+        <div>
+          <span id="setup-step" class="setup-step">首次使用 · 配置向导</span>
+          <h2 id="setup-title">创建自己的配置</h2>
+        </div>
+        <button id="settings-close" class="icon-btn" type="button" title="收起设置" aria-label="收起设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="field" style="padding:0 18px">
+        <label for="config">配置文件路径</label>
+        <div class="config-row" style="padding:0">
+          <input id="config" placeholder="选择 config.ini，或输入路径" autocomplete="off">
+          <button id="choose-config" class="secondary" type="button">选择文件</button>
+          <button id="edit-config" class="secondary" type="button" hidden>编辑配置</button>
+          <button id="new-config" class="secondary" type="button" hidden>新建配置</button>
+        </div>
+        <p class="hint">留空时读取启动目录中的 config.ini。账号和题库设置均从配置文件读取。</p>
+      </div>
+      <p id="setup-intro" class="setup-intro" style="padding:0 18px">已有配置文件可以用上方“选择文件”直接打开。新用户填写账号与密码；题库可以稍后再设置。保存后就能读取课程。</p>
+      <form id="setup-form">
+        <div class="field">
+          <label class="check"><input id="setup-use-cookies" type="checkbox"> 优先使用已保存的 Cookie</label>
+          <p class="hint">Cookie 可用时直接登录；失效后仍需要账号和密码。</p>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label for="setup-username">学习通账号</label>
+            <input id="setup-username" autocomplete="username" required placeholder="手机号或账号">
+          </div>
+          <div class="field">
+            <label for="setup-password">登录密码</label>
+            <input id="setup-password" type="password" autocomplete="current-password" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="setup-course-ids">课程 ID（可选）</label>
+          <input id="setup-course-ids" placeholder="例如 123456789,123456790">
+          <p class="hint">留空也可以。读取课程后仍能在左侧列表中选择要学习的课程。</p>
+        </div>
+        <details class="setup-group">
+          <summary>学习设置</summary>
+          <label class="check"><input id="setup-work-enabled" type="checkbox" checked> 启用章节检测答题</label>
+          <p class="hint">取消勾选后跳过答题，继续处理视频等任务。启用答题需要配置题库；是否自动提交由下方选项控制。</p>
+          <label class="check"><input id="setup-work-prefetch" type="checkbox"> 后台预取答题（视频播放时提前查题）</label>
+          <p class="hint">视频等任务进行时，提前让题库或 AI 查询后续章节检测答案。可缩短等待时间，但会提前消耗题库/AI 请求次数。</p>
+          <label class="check"><input id="setup-captcha-enabled" type="checkbox"> 自动识别图片验证码（ddddocr）</label>
+          <p class="hint">需要本机安装 Python 与 ddddocr（python -m pip install ddddocr）。开启后遇到学习通反爬验证码会自动识别并重试原请求。</p>
+          <div class="grid">
+            <div class="field">
+              <label for="setup-speed">视频倍速</label>
+              <input id="setup-speed" type="number" min="1" max="2" step="0.1" value="1">
+            </div>
+            <div class="field">
+              <label for="setup-jobs">同时处理章节数</label>
+              <input id="setup-jobs" type="number" min="1" max="16" step="1" value="4">
+            </div>
+          </div>
+        </details>
+        <details class="setup-group">
+          <summary>题库设置（可选）</summary>
+          <div class="field">
+            <label for="setup-provider">题库</label>
+            <select id="setup-provider">
+              <option value="">暂不启用</option>
+              <option value="TikuYanxi">言溪题库</option>
+              <option value="TikuGo">GO题</option>
+              <option value="AI">自定义 AI 接口</option>
+            </select>
+          </div>
+          <label class="check"><input id="setup-ai-fallback" type="checkbox"> 启用 AI 回退（主题库没答案时再查大模型）</label>
+          <div id="setup-yanxi" class="field hidden">
+            <label for="setup-tokens">言溪 Token</label>
+            <input id="setup-tokens" placeholder="多个 Token 用英文逗号分隔">
+          </div>
+          <div id="setup-go" class="field hidden">
+            <label for="setup-go-authorization">GO题授权 Token（可选）</label>
+            <input id="setup-go-authorization">
+          </div>
+          <div id="setup-ai" class="hidden">
+            <p class="hint">AI 参数由你填写；如果填写服务商预设（如 ollama、lmstudio），API 地址可以留空。</p>
+            <div class="field">
+              <label for="setup-llm-preset">服务商预设（可选）</label>
+              <input id="setup-llm-preset" placeholder="例如 ollama、lmstudio；留空则填 API 地址">
+            </div>
+            <div class="field">
+              <label for="setup-endpoint">API 地址</label>
+              <input id="setup-endpoint" type="url" placeholder="https://example.com/v1 或 http://127.0.0.1:11434/v1">
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="setup-api-key">API Key</label>
+                <input id="setup-api-key" type="password" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="setup-model">模型名</label>
+                <input id="setup-model" placeholder="例如 qwen3:4b-instruct">
+              </div>
+            </div>
+          </div>
+          <label class="check"><input id="setup-submit" type="checkbox"> 自动提交章节检测答案</label>
+          <p class="hint">默认只保存找到的答案。启用后，题库覆盖率不低于下方比例才会提交；请自行确认题库的准确率。</p>
+          <div class="field">
+            <label for="setup-cover-rate">自动提交最低覆盖率</label>
+            <input id="setup-cover-rate" type="number" min="0" max="1" step="0.05" value="0.8">
+            <p class="hint">题库覆盖率低于该值时只保存答案，不提交。默认 0.8。</p>
+          </div>
+        </details>
+        <div class="actions">
+          <button id="save-setup" type="submit">保存配置并继续</button>
+        </div>
+        <p id="setup-save-hint" class="hint">账号、密码和 API Key 会写入本机用户数据目录的 config.ini。</p>
+      </form>
+      <div id="setup-result" class="result hidden" role="status" aria-live="polite" style="margin:0 18px 18px"></div>
+    </section>
+
+    <div class="workspace">
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>课程</h2>
+          <button id="load-courses" class="icon-btn" type="button" title="读取课程" aria-label="读取课程">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.1"/><path d="M20 5v6h-6"/></svg>
+          </button>
+        </div>
+        <div class="select-row">
+          <label><input id="select-all-courses" type="checkbox" disabled> 全选</label>
+          <span id="selected-count">已选 0 / 0</span>
+        </div>
+        <div id="course-list" class="course-list" aria-label="课程列表">
+          <p class="empty">读取账号下的课程后，在这里勾选要学习的内容。</p>
+        </div>
+      </aside>
+
+      <div class="right-column">
+        <section id="status-card" class="panel status-card">
+          <div class="status-top">
+            <span id="log-chip" class="chip stopped">未开始</span>
+            <span id="log-progress" class="status-copy">尚未读取课程</span>
+            <div class="status-counts">
+              <span id="log-warns" class="count warn">警告 0</span>
+              <span id="log-errors" class="count error">错误 0</span>
+            </div>
+            <button id="start-study" class="primary-btn" type="button" disabled>开始</button>
+          </div>
+          <div class="overall-bar" aria-hidden="true"><span id="log-bar-fill"></span></div>
+          <p id="study-result" class="status-note" role="status" aria-live="polite">先读取课程。</p>
+        </section>
+
+        <section id="study-log" class="panel log-panel" aria-label="运行日志">
+          <div class="log-head">
+            <h2>运行日志</h2>
+            <div class="log-tools">
+              <div class="seg" role="group" aria-label="日志筛选">
+                <button type="button" class="seg-btn" data-filter="all" aria-pressed="true">全部</button>
+                <button type="button" class="seg-btn" data-filter="issues" aria-pressed="false">警告和错误</button>
+                <button type="button" class="seg-btn" data-filter="random" aria-pressed="false">仅随机兜底</button>
+              </div>
+              <button id="copy-log" type="button" class="link-btn">复制日志</button>
+              <button id="open-log-file" type="button" class="link-btn">打开完整日志文件</button>
+            </div>
+          </div>
+          <div id="task-progress-list" class="task-progress-list" aria-label="各任务实时进度" hidden></div>
+          <div class="log-wrap">
+            <div id="log-body" class="log-body" role="log" aria-label="日志内容" aria-live="off" tabindex="0" data-filter="all"></div>
+            <p id="log-empty" class="log-empty">开始学习后，这里按章节显示答题与警告。</p>
+            <button id="log-jump" type="button" class="log-jump" hidden>↓ 回到最新</button>
+          </div>
+          <p id="log-file" class="log-file" hidden>完整日志文件：<code id="log-file-path"></code></p>
+        </section>
+
+        <details class="reveal" id="ask-panel">
+          <summary>题库测试 <span style="color:var(--faint);font-weight:400;font-size:11.5px">试用，单独测试一道题</span></summary>
+          <form id="query-form" class="query-form">
+            <div class="grid">
+              <div class="field">
+                <label for="type">题型</label>
+                <select id="type">
+                  <option value="single">单选题</option>
+                  <option value="multiple">多选题</option>
+                  <option value="judgement">判断题</option>
+                  <option value="completion">填空题</option>
+                  <option value="short">简答题</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="course">课程名称</label>
+                <input id="course" placeholder="可选，供大模型参考">
+              </div>
+            </div>
+            <div class="field">
+              <label for="title">题目</label>
+              <textarea id="title" required placeholder="输入要查询的题目"></textarea>
+            </div>
+            <div class="field">
+              <label for="options">选项</label>
+              <textarea id="options" placeholder="A. 第一个选项&#10;B. 第二个选项"></textarea>
+              <p class="hint">每行一个选项。非选择题可以留空。</p>
+            </div>
+            <div class="actions">
+              <button id="submit" type="submit">查询答案</button>
+              <label class="check"><input id="use-cache" type="checkbox"> 使用本地答案缓存</label>
+            </div>
+          </form>
+          <div id="result" class="result" role="status" aria-live="polite" style="margin:0 14px 14px">查询结果会显示在这里。</div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const value = (id) => document.getElementById(id).value.trim();
+    const errorText = (error) => error && error.message ? error.message : String(error);
+    const form = document.getElementById('query-form');
+    const result = document.getElementById('result');
+    const submit = document.getElementById('submit');
+    const studyResult = document.getElementById('study-result');
+    const courseList = document.getElementById('course-list');
+    const loadButton = document.getElementById('load-courses');
+    const startButton = document.getElementById('start-study');
+    const selectAllCourses = document.getElementById('select-all-courses');
+    const selectedCount = document.getElementById('selected-count');
+    const setup = document.getElementById('setup');
+    const setupResult = document.getElementById('setup-result');
+    const newConfigButton = document.getElementById('new-config');
+    const editConfigButton = document.getElementById('edit-config');
+    const settingsToggle = document.getElementById('settings-toggle');
+    let canCreateConfig = true;
+    let setupMode = 'create';
+    let studyRunning = false;
+    let stopping = false;
+
+    const setSettingsOpen = (open) => {
+      setup.hidden = !open;
+      settingsToggle.setAttribute('aria-expanded', String(open));
+      if (open) setup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    settingsToggle.addEventListener('click', () => {
+      if (!setup.hidden) { setSettingsOpen(false); return; }
+      setSettingsOpen(true);
+      if (value('config')) openEditConfig();
+    });
+    document.getElementById('settings-close').addEventListener('click', () => setSettingsOpen(false));
+
+    const clearSecretFields = () => {
+      for (const id of ['setup-password', 'setup-tokens', 'setup-go-authorization', 'setup-api-key']) {
+        document.getElementById(id).value = '';
+      }
+    };
+    const updateLoginFields = () => {
+      const cookieLogin = document.getElementById('setup-use-cookies').checked;
+      document.getElementById('setup-username').required = !cookieLogin;
+      document.getElementById('setup-password').required = setupMode === 'create' && !cookieLogin;
+    };
+    document.getElementById('setup-use-cookies').addEventListener('change', updateLoginFields);
+    const setSetupMode = (mode) => {
+      setupMode = mode;
+      const editing = mode === 'edit';
+      document.getElementById('setup-step').textContent = editing ? '当前配置' : '首次使用 · 配置向导';
+      document.getElementById('setup-title').textContent = editing ? '编辑配置' : '创建自己的配置';
+      document.getElementById('setup-intro').textContent = editing
+        ? '修改后保存到当前配置文件。密码、Token 和 API Key 留空时保留原值；表单未列出的设置也会保留。'
+        : '已有配置文件可以用上方“选择文件”直接打开。新用户填写账号与密码；题库可以稍后再设置。保存后就能读取课程。';
+      document.getElementById('setup-save-hint').textContent = editing
+        ? '配置中的账号和密钥保存在本机文件中。'
+        : '账号、密码和 API Key 会写入本机用户数据目录的 config.ini。';
+      document.getElementById('save-setup').textContent = editing ? '保存修改' : '保存配置并继续';
+      updateLoginFields();
+    };
+    const selectWithExisting = (id, chosen) => {
+      const select = document.getElementById(id);
+      select.querySelectorAll('option[data-existing]').forEach((option) => option.remove());
+      if (chosen && ![...select.options].some((option) => option.value === chosen)) {
+        const option = document.createElement('option');
+        option.value = chosen;
+        option.textContent = `当前配置：${chosen}`;
+        option.dataset.existing = 'true';
+        select.add(option);
+      }
+      select.value = chosen || '';
+    };
+    const fillSetup = (config) => {
+      document.getElementById('setup-use-cookies').checked = !!config.useCookies;
+      for (const [id, field] of Object.entries({
+        'setup-username': 'username', 'setup-course-ids': 'courseIds',
+        'setup-speed': 'speed', 'setup-jobs': 'jobs',
+        'setup-llm-preset': 'llmPreset',
+        'setup-endpoint': 'endpoint', 'setup-model': 'model',
+        'setup-cover-rate': 'coverRate',
+      })) document.getElementById(id).value = config[field] ?? '';
+      selectWithExisting('setup-provider', config.provider);
+      document.getElementById('setup-ai-fallback').checked = !!config.aiFallback;
+      document.getElementById('setup-submit').checked = !!config.submit;
+      document.getElementById('setup-work-enabled').checked = config.workEnabled !== false;
+      document.getElementById('setup-work-prefetch').checked = !!config.workPrefetchEnabled;
+      document.getElementById('setup-captcha-enabled').checked = !!config.captchaEnabled;
+      clearSecretFields();
+      updateSetupFields();
+      updateLoginFields();
+    };
+    const setConditional = (id, visible) => {
+      const section = document.getElementById(id);
+      section.classList.toggle('hidden', !visible);
+      section.querySelectorAll('input').forEach((input) => { input.disabled = !visible; });
+    };
+    const updateSetupFields = () => {
+      const provider = value('setup-provider');
+      const aiFallback = document.getElementById('setup-ai-fallback').checked;
+      setConditional('setup-yanxi', provider === 'TikuYanxi');
+      setConditional('setup-go', provider === 'TikuGo');
+      setConditional('setup-ai', provider === 'AI' || aiFallback);
+    };
+    document.getElementById('setup-provider').addEventListener('change', updateSetupFields);
+    document.getElementById('setup-ai-fallback').addEventListener('change', updateSetupFields);
+    updateSetupFields();
+    updateLoginFields();
+    newConfigButton.addEventListener('click', () => {
+      document.getElementById('setup-form').reset();
+      clearSecretFields();
+      setSetupMode('create');
+      updateSetupFields();
+      setSettingsOpen(true);
+      newConfigButton.hidden = true;
+    });
+    async function openEditConfig() {
+      try {
+        const config = await mygo.call('Bridge.LoadConfig', value('config'));
+        setSetupMode('edit');
+        fillSetup(config);
+        setupResult.classList.add('hidden');
+        setSettingsOpen(true);
+      } catch (error) {
+        studyResult.classList.add('error');
+        studyResult.textContent = errorText(error);
+      }
+    }
+    editConfigButton.addEventListener('click', openEditConfig);
+    const showConfigBadge = (path) => {
+      const badge = document.getElementById('config-badge');
+      document.getElementById('config-badge-text').textContent = path || '未选择配置';
+      badge.hidden = !path;
+    };
+    const readCoursesIfReady = () => { if (!value('config')) return; loadCourses(); };
+    (async () => {
+      try {
+        const state = await mygo.call('Bridge.SetupState');
+        if (state.exists) {
+          canCreateConfig = false;
+          document.getElementById('config').value = state.configPath;
+          showConfigBadge(state.configPath);
+          editConfigButton.hidden = false;
+          studyResult.textContent = '配置已就绪，正在读取课程…';
+          readCoursesIfReady();
+        } else {
+          setSettingsOpen(true);
+          setSetupMode('create');
+        }
+      } catch (error) {
+        studyResult.classList.add('error');
+        studyResult.textContent = errorText(error);
+      }
+    })();
+    document.getElementById('setup-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const saveButton = document.getElementById('save-setup');
+      saveButton.disabled = true;
+      setupResult.classList.remove('hidden', 'error');
+      setupResult.textContent = '正在保存配置…';
+      try {
+        const request = {
+          useCookies: document.getElementById('setup-use-cookies').checked,
+          username: value('setup-username'),
+          password: document.getElementById('setup-password').value,
+          courseIds: value('setup-course-ids'),
+          speed: Number(value('setup-speed')),
+          jobs: Number(value('setup-jobs')),
+          workEnabled: document.getElementById('setup-work-enabled').checked,
+          workPrefetchEnabled: document.getElementById('setup-work-prefetch').checked,
+          captchaEnabled: document.getElementById('setup-captcha-enabled').checked,
+          provider: value('setup-provider'),
+          aiFallback: document.getElementById('setup-ai-fallback').checked,
+          tokens: value('setup-tokens'),
+          goAuthorization: value('setup-go-authorization'),
+          llmPreset: value('setup-llm-preset'),
+          endpoint: value('setup-endpoint'),
+          apiKey: document.getElementById('setup-api-key').value,
+          model: value('setup-model'),
+          submit: document.getElementById('setup-submit').checked,
+          coverRate: Number(value('setup-cover-rate')),
+        };
+        const path = setupMode === 'edit'
+          ? await mygo.call('Bridge.UpdateConfig', value('config'), request)
+          : await mygo.call('Bridge.Initialize', request);
+        document.getElementById('config').value = path;
+        showConfigBadge(path);
+        clearSecretFields();
+        setSettingsOpen(false);
+        canCreateConfig = false;
+        newConfigButton.hidden = true;
+        editConfigButton.hidden = false;
+        resetCourses();
+        studyResult.textContent = '配置已保存。现在可以读取课程。';
+      } catch (error) {
+        setupResult.classList.remove('hidden');
+        setupResult.classList.add('error');
+        setupResult.textContent = errorText(error);
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+    document.getElementById('choose-config').addEventListener('click', async () => {
+      try {
+        const path = await mygo.call('Bridge.ChooseConfig');
+        if (path) {
+          document.getElementById('config').value = path;
+          showConfigBadge(path);
+          newConfigButton.hidden = !canCreateConfig;
+          editConfigButton.hidden = false;
+          resetCourses();
+          readCoursesIfReady();
+        }
+      } catch (error) {
+        studyResult.classList.add('error');
+        studyResult.textContent = errorText(error);
+      }
+    });
+    document.getElementById('config').addEventListener('change', () => { showConfigBadge(value('config')); resetCourses(); });
+
+    const courseMeta = new Map();
+    const courseCards = new Map();
+    let latestCourses = [];
+    const courseCheckboxes = () => [...courseList.querySelectorAll('input[type="checkbox"]')];
+    const updateCourseSelection = () => {
+      const boxes = courseCheckboxes();
+      const selected = boxes.filter((checkbox) => checkbox.checked).length;
+      selectAllCourses.disabled = boxes.length === 0 || studyRunning;
+      selectAllCourses.checked = boxes.length > 0 && selected === boxes.length;
+      selectAllCourses.indeterminate = selected > 0 && selected < boxes.length;
+      selectedCount.textContent = `已选 ${selected} / ${boxes.length}`;
+      startButton.disabled = studyRunning || selected === 0;
+      boxes.forEach((box) => {
+        box.disabled = studyRunning;
+        box.closest('.course-card').classList.toggle('is-locked', studyRunning);
+      });
+    };
+    const resetCourses = () => {
+      courseMeta.clear();
+      courseCards.clear();
+      latestCourses = [];
+      courseList.replaceChildren();
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = '读取账号下的课程后，在这里勾选要学习的内容。';
+      courseList.append(empty);
+      updateCourseSelection();
+    };
+    const courseProgress = (course) => {
+      const title = course.title;
+      const clazzes = course.classes.map((item) => item.clazzId);
+      return latestCourses.find((item) => item.course === title && clazzes.includes(item.clazz))
+        || latestCourses.find((item) => item.course === title) || null;
+    };
+    const statusInfo = (progress) => {
+      if (!progress) return { text: '待运行', cls: '' };
+      if (progress.state === 'done') return { text: '已完成', cls: 'is-done' };
+      if (progress.state === 'warn') return { text: '有警告', cls: 'is-warn' };
+      if (progress.state === 'running') return { text: '进行中', cls: 'is-running' };
+      return { text: '待运行', cls: '' };
+    };
+    const renderCourseCards = () => {
+      for (const [id, card] of courseCards) {
+        const course = courseMeta.get(id);
+        const progress = courseProgress(course);
+        const status = statusInfo(progress);
+        const badge = card.querySelector('.status-pill');
+        badge.className = `status-pill ${status.cls}`;
+        badge.textContent = status.text;
+        const total = progress ? progress.chapters : 0;
+        const done = progress ? Math.min(progress.done, total) : 0;
+        const bar = card.querySelector('.course-bar');
+        bar.classList.toggle('is-done', total > 0 && done >= total);
+        bar.classList.toggle('is-warn', !!(progress && (progress.warnings > 0 || progress.failed > 0)) && done < total);
+        bar.querySelector('span').style.width = total ? `${Math.round(done / total * 100)}%` : '0';
+        card.querySelector('.course-count').textContent = total ? `${done} / ${total} 个章节` : '尚未开始';
+      }
+    };
+    courseList.addEventListener('change', updateCourseSelection);
+    selectAllCourses.addEventListener('change', () => {
+      courseCheckboxes().forEach((checkbox) => { checkbox.checked = selectAllCourses.checked; });
+      updateCourseSelection();
+    });
+    async function loadCourses() {
+      loadButton.disabled = true;
+      resetCourses();
+      studyResult.classList.remove('error');
+      studyResult.textContent = '正在读取课程…';
+      try {
+        const courses = await mygo.call('Bridge.Courses', value('config'));
+        const grouped = new Map();
+        for (const course of courses) {
+          if (!grouped.has(course.courseId)) grouped.set(course.courseId, []);
+          grouped.get(course.courseId).push(course);
+        }
+        courseList.replaceChildren();
+        for (const [courseId, classes] of grouped) {
+          courseMeta.set(courseId, { id: courseId, title: classes[0].title || courseId, classes });
+          const card = document.createElement('label');
+          card.className = 'course-card';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = courseId;
+          const main = document.createElement('div');
+          main.className = 'course-main';
+          const top = document.createElement('div');
+          top.className = 'course-top';
+          const title = document.createElement('span');
+          title.className = 'course-title';
+          title.textContent = classes[0].title || courseId;
+          title.title = title.textContent;
+          const badge = document.createElement('span');
+          badge.className = 'status-pill';
+          badge.textContent = '待运行';
+          top.append(title, badge);
+          const meta = document.createElement('div');
+          meta.className = 'course-meta';
+          meta.textContent = `课程 ${courseId} · 班级 ${classes.map((item) => item.clazzId).join('、')}`;
+          const bar = document.createElement('div');
+          bar.className = 'course-bar';
+          bar.append(document.createElement('span'));
+          const count = document.createElement('div');
+          count.className = 'course-count';
+          count.textContent = '尚未开始';
+          main.append(top, meta, bar, count);
+          card.append(checkbox, main);
+          courseCards.set(courseId, card);
+          courseList.append(card);
+        }
+        if (!grouped.size) {
+          const empty = document.createElement('p');
+          empty.className = 'empty';
+          empty.textContent = '未找到课程。请检查账号或 Cookie 是否有效。';
+          courseList.append(empty);
+        }
+        updateCourseSelection();
+        renderCourseCards();
+        if (!studyRunning) logProgress.textContent = grouped.size ? '已读取课程，等待开始' : '尚未读取课程';
+        studyResult.textContent = grouped.size ? `已读取 ${grouped.size} 门课程，勾选后开始学习。` : '未找到课程。';
+      } catch (error) {
+        studyResult.classList.add('error');
+        studyResult.textContent = errorText(error);
+      } finally {
+        loadButton.disabled = false;
+      }
+    }
+    loadButton.addEventListener('click', loadCourses);
+
+    const logPanel = document.getElementById('study-log');
+    const logBody = document.getElementById('log-body');
+    const logEmpty = document.getElementById('log-empty');
+    const logJump = document.getElementById('log-jump');
+    const logChip = document.getElementById('log-chip');
+    const logProgress = document.getElementById('log-progress');
+    const logBarFill = document.getElementById('log-bar-fill');
+    const logWarns = document.getElementById('log-warns');
+    const logErrors = document.getElementById('log-errors');
+    const logFile = document.getElementById('log-file');
+    const copyLogButton = document.getElementById('copy-log');
+    const openLogButton = document.getElementById('open-log-file');
+    const STATE_LABEL = { running: '运行中', done: '已完成', failed: '出错', stopped: '已停止' };
+    const CHAPTER_STATE = { start: '进行中', done: '完成', failed: '失败', closed: '跳过', stopped: '已停止' };
+    const taskProgressList = document.getElementById('task-progress-list');
+    const taskProgressRows = new Map();
+    const renderTaskProgress = (items = []) => {
+      const active = new Set(items.map((item) => item.id));
+      for (const [id, row] of taskProgressRows) {
+        if (!active.has(id)) { row.remove(); taskProgressRows.delete(id); }
+      }
+      for (const item of items) {
+        let row = taskProgressRows.get(item.id);
+        if (!row) {
+          row = document.createElement('div');
+          row.className = 'task-progress';
+          const label = document.createElement('span');
+          label.className = 'task-label';
+          const value = document.createElement('span');
+          value.className = 'task-value';
+          row.append(label, value, document.createElement('progress'));
+          taskProgressRows.set(item.id, row);
+          taskProgressList.append(row);
+        }
+        const [label, value, bar] = row.children;
+        label.textContent = item.label;
+        label.title = item.label;
+        bar.setAttribute('aria-label', item.label);
+        const total = Math.max(0, item.total);
+        const position = Math.min(total, Math.max(0, item.position));
+        if (total) {
+          bar.max = total;
+          bar.value = position;
+          value.textContent = `${Math.floor(position / total * 100)}% · ${position} / ${total}`;
+        } else {
+          bar.removeAttribute('value');
+          value.textContent = '正在读取…';
+        }
+      }
+      taskProgressList.hidden = !items.length;
+    };
+    let runToken = 0;      // 每次开始学习加一，用来丢弃上一轮遗留的请求结果
+    let logRun = null;     // 正在显示的日志属于 Go 端的哪一轮（编号只增不减）
+    let staleRun = -1;     // 本页见过的上一轮编号；新一轮真正开始前，Go 端仍会返回它
+    let logCursor = 0;
+    let logQueue = Promise.resolve();
+    let logQueued = false;
+    let userStopped = false;
+    let latestChapters = [];
+    let latestLines = [];
+    const expanded = new Set();
+    const collapsed = new Set();
+    let activeFilter = 'all';
+
+    const sourceLabel = (answer) => answer.hit ? (answer.source || '题库') : '随机兜底';
+    const chapterBadge = (chapter) => {
+      if (chapter.errors > 0) return { text: '错误', cls: 'is-failed' };
+      if (chapter.state === 'start') return { text: '进行中', cls: 'is-running' };
+      if (chapter.warnings > 0) return { text: '警告', cls: 'is-warn' };
+      if (chapter.state === 'failed') return { text: '失败', cls: 'is-failed' };
+      if (chapter.state === 'closed' || chapter.state === 'stopped') return { text: CHAPTER_STATE[chapter.state], cls: '' };
+      if (chapter.state === 'done') return { text: '完成', cls: 'is-done' };
+      return { text: CHAPTER_STATE[chapter.state] || '待处理', cls: '' };
+    };
+    const chapterSummary = (chapter) => {
+      const total = chapter.questions || chapter.answers.length;
+      const counts = new Map();
+      for (const answer of chapter.answers) {
+        const source = sourceLabel(answer);
+        counts.set(source, (counts.get(source) || 0) + 1);
+      }
+      const sources = [...counts].map(([source, count]) => `${source} ${count}`).join(' / ');
+      const parts = [];
+      if (total) parts.push(`${total} 题`);
+      if (sources) parts.push(sources);
+      if (chapter.warnings) parts.push(`${chapter.warnings} 条警告`);
+      if (chapter.errors) parts.push(`${chapter.errors} 条错误`);
+      return parts.join(' · ') || '等待任务开始';
+    };
+    const issuePrefixes = () => latestChapters.map((chapter) => `${chapter.course} / ${chapter.title}`);
+    const chapterIssues = (chapter) => latestLines.filter((line) =>
+      (line.level === 'warn' || line.level === 'error')
+      && line.text.includes(`${chapter.course} / ${chapter.title}`));
+    const otherIssues = () => {
+      const prefixes = issuePrefixes();
+      return latestLines.filter((line) =>
+        (line.level === 'warn' || line.level === 'error')
+        && !prefixes.some((prefix) => line.text.includes(prefix)));
+    };
+    const answerRow = (answer) => {
+      const row = document.createElement('div');
+      row.className = 'answer-row';
+      const time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = answer.time || '';
+      const source = document.createElement('span');
+      source.className = `src${answer.hit ? '' : ' is-random'}`;
+      source.textContent = sourceLabel(answer);
+      const desc = document.createElement('span');
+      desc.className = 'desc';
+      const verdict = answer.hit ? '命中' : '未命中';
+      const state = answer.submitted ? '已提交' : '仅保存';
+      const answerText = answer.answer ? `，答案 ${answer.answer}` : '';
+      desc.append(`${answer.kind} ${answer.index}/${answer.total}，${verdict}，${state}${answerText}`);
+      if (answer.title) {
+        const title = document.createElement('span');
+        title.className = 'q';
+        title.textContent = answer.title;
+        title.title = answer.title;
+        desc.append(title);
+      }
+      row.append(time, source, desc);
+      return row;
+    };
+    const issueRow = (line) => {
+      const row = document.createElement('div');
+      row.className = `issue-row${line.level === 'error' ? ' is-error' : ''}`;
+      if (line.time) {
+        const time = document.createElement('span');
+        time.className = 'time';
+        time.textContent = line.time.slice(11);
+        row.append(time);
+      }
+      row.append(line.text);
+      return row;
+    };
+    const chapterCard = (chapter) => {
+      const card = document.createElement('section');
+      const badge = chapterBadge(chapter);
+      const open = expanded.has(chapter.key) || (chapter.state === 'start' && !collapsed.has(chapter.key));
+      card.className = `chapter${chapter.state === 'start' ? ' is-running' : ''}${open ? ' is-open' : ''}`;
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'chapter-head';
+      head.setAttribute('aria-expanded', String(open));
+      const chevron = document.createElement('span');
+      chevron.className = 'chevron';
+      const title = document.createElement('span');
+      title.className = 'chapter-title';
+      const strong = document.createElement('strong');
+      strong.textContent = chapter.title;
+      const small = document.createElement('small');
+      small.textContent = chapterSummary(chapter);
+      title.append(strong, small);
+      const pill = document.createElement('span');
+      pill.className = `status-pill ${badge.cls}`;
+      pill.textContent = badge.text;
+      head.append(chevron, title, pill);
+      head.addEventListener('click', () => {
+        if (open) {
+          expanded.delete(chapter.key);
+          collapsed.add(chapter.key);
+        } else {
+          expanded.add(chapter.key);
+          collapsed.delete(chapter.key);
+        }
+        renderChapters();
+      });
+      card.append(head);
+      if (open) {
+        const body = document.createElement('div');
+        body.className = 'chapter-body';
+        const answers = activeFilter === 'random'
+          ? chapter.answers.filter((answer) => !answer.hit)
+          : activeFilter === 'issues' ? [] : chapter.answers;
+        if (answers.length) {
+          for (const answer of answers) body.append(answerRow(answer));
+        } else if (chapter.state === 'start' && activeFilter === 'all') {
+          const note = document.createElement('div');
+          note.className = 'chapter-note';
+          note.textContent = '正在处理该章节的任务点…';
+          body.append(note);
+        }
+        for (const line of chapterIssues(chapter)) body.append(issueRow(line));
+        card.append(body);
+      }
+      card.dataset.key = chapter.key;
+      return card;
+    };
+    const renderChapters = () => {
+      const follow = logBody.scrollHeight - logBody.scrollTop - logBody.clientHeight < 40;
+      logBody.replaceChildren();
+      let visible = 0;
+      for (const chapter of latestChapters) {
+        const matches = activeFilter === 'all'
+          || (activeFilter === 'issues' && chapter.warnings + chapter.errors > 0)
+          || (activeFilter === 'random' && chapter.answers.some((answer) => !answer.hit));
+        if (!matches) continue;
+        logBody.append(chapterCard(chapter));
+        visible += 1;
+      }
+      if (activeFilter !== 'random') {
+        const issues = otherIssues();
+        if (issues.length) {
+          const card = document.createElement('section');
+          card.className = `chapter${expanded.has('__other__') ? ' is-open' : ''}`;
+          const head = document.createElement('button');
+          head.type = 'button';
+          head.className = 'chapter-head';
+          head.setAttribute('aria-expanded', String(expanded.has('__other__')));
+          const chevron = document.createElement('span');
+          chevron.className = 'chevron';
+          const title = document.createElement('span');
+          title.className = 'chapter-title';
+          const strong = document.createElement('strong');
+          strong.textContent = '其他运行消息';
+          const small = document.createElement('small');
+          small.textContent = `${issues.length} 条警告或错误`;
+          title.append(strong, small);
+          const pill = document.createElement('span');
+          pill.className = 'status-pill is-warn';
+          pill.textContent = '警告';
+          head.append(chevron, title, pill);
+          head.addEventListener('click', () => {
+            if (expanded.has('__other__')) expanded.delete('__other__'); else expanded.add('__other__');
+            renderChapters();
+          });
+          card.append(head);
+          if (expanded.has('__other__')) {
+            const body = document.createElement('div');
+            body.className = 'chapter-body';
+            for (const line of issues.slice(-80)) body.append(issueRow(line));
+            card.append(body);
+          }
+          logBody.append(card);
+          visible += 1;
+        }
+      }
+      const filtering = activeFilter !== 'all';
+      logEmpty.hidden = visible > 0;
+      logEmpty.textContent = filtering ? '没有符合条件的记录。' : '等待日志…';
+      if (follow) scrollLogToEnd(); else if (visible) logJump.hidden = false;
+    };
+    const renderLogSummary = (log) => {
+      const handled = log.done + log.failed;
+      logProgress.textContent = log.total ? `已处理 ${handled} / ${log.total} 个章节` : (studyRunning ? '正在读取课程章节…' : '尚未读取课程');
+      logBarFill.style.width = log.total ? `${Math.min(100, (handled / log.total) * 100)}%` : '0';
+      logWarns.textContent = `警告 ${log.warns}`;
+      logWarns.classList.toggle('on', log.warns > 0);
+      logErrors.textContent = `错误 ${log.errors}`;
+      logErrors.classList.toggle('on', log.errors > 0);
+      if (log.file) {
+        document.getElementById('log-file-path').textContent = log.file;
+        logFile.hidden = false;
+      }
+    };
+    const setLogState = (state) => {
+      logChip.className = `chip ${state}`;
+      logChip.textContent = STATE_LABEL[state] || state;
+      document.getElementById('status-card').classList.toggle('is-done', state === 'done');
+      document.getElementById('status-card').classList.toggle('is-failed', state === 'failed');
+    };
+    const resetLog = () => {
+      if (logRun !== null) staleRun = logRun;
+      logRun = null;
+      logCursor = 0;
+      latestChapters = [];
+      latestLines = [];
+      expanded.clear();
+      collapsed.clear();
+      logBody.replaceChildren();
+      logJump.hidden = true;
+      logFile.hidden = true;
+      renderTaskProgress();
+      renderLogSummary({ total: 0, done: 0, failed: 0, warns: 0, errors: 0 });
+      setLogState('running');
+      logPanel.hidden = false;
+      renderChapters();
+    };
+    const atLogEnd = () => logBody.scrollHeight - logBody.scrollTop - logBody.clientHeight < 40;
+    const scrollLogToEnd = () => { logBody.scrollTop = logBody.scrollHeight; logJump.hidden = true; };
+    const fetchLog = async () => {
+      const token = runToken;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const log = await mygo.call('Bridge.StudyLog', logCursor);
+        if (token !== runToken || log.run <= staleRun) return;
+        if (logRun !== null && log.run < logRun) return;
+        if (logRun !== null && log.run > logRun) {
+          logRun = log.run;
+          logCursor = 0;
+          latestChapters = [];
+          latestLines = [];
+          continue;
+        }
+        logRun = log.run;
+        logCursor = log.next;
+        if (log.lines.length) latestLines.push(...log.lines);
+        if (latestLines.length > 3000) latestLines = latestLines.slice(-3000);
+        latestChapters = log.chapters || [];
+        latestCourses = log.courses || [];
+        renderTaskProgress(log.progress);
+        renderLogSummary(log);
+        renderCourseCards();
+        renderChapters();
+        return;
+      }
+    };
+    // 轮询与结束时的最后一次读取串行执行，避免两次请求使用同一个游标而重复追加。
+    const requestLogUpdate = () => {
+      if (!logQueued) {
+        logQueued = true;
+        logQueue = logQueue.then(async () => {
+          logQueued = false;
+          try { await fetchLog(); } catch (_) { /* 下一次轮询会重试 */ }
+        });
+      }
+      return logQueue;
+    };
+    logJump.addEventListener('click', scrollLogToEnd);
+    logBody.addEventListener('scroll', () => { if (atLogEnd()) logJump.hidden = true; });
+    document.querySelectorAll('.seg-btn').forEach((button) => button.addEventListener('click', () => {
+      activeFilter = button.dataset.filter;
+      logBody.dataset.filter = activeFilter;
+      document.querySelectorAll('.seg-btn').forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
+      renderChapters();
+      scrollLogToEnd();
+    }));
+    let copyFeedback = null;
+    copyLogButton.addEventListener('click', async () => {
+      if (copyFeedback) return;
+      copyFeedback = true;
+      copyLogButton.title = '';
+      let label = '已复制';
+      let delay = 1600;
+      try {
+        await mygo.call('Bridge.CopyLog');
+      } catch (error) {
+        label = '复制失败';
+        delay = 3000;
+        copyLogButton.title = errorText(error);
+      }
+      copyLogButton.textContent = label;
+      copyFeedback = setTimeout(() => {
+        copyLogButton.textContent = '复制日志';
+        copyLogButton.title = '';
+        copyFeedback = null;
+      }, delay);
+    });
+    openLogButton.addEventListener('click', async () => {
+      try {
+        await mygo.call('Bridge.OpenLogFile');
+      } catch (error) {
+        studyResult.classList.add('error');
+        studyResult.textContent = errorText(error);
+      }
+    });
+    const setStudyButtons = () => {
+      startButton.disabled = studyRunning ? false : !courseCheckboxes().some((box) => box.checked);
+      if (stopping) {
+        startButton.disabled = true;
+        startButton.textContent = '停止中…';
+        startButton.classList.add('is-stop');
+        return;
+      }
+      startButton.classList.remove('is-stop');
+      startButton.textContent = studyRunning ? '停止' : '开始';
+    };
+    startButton.addEventListener('click', async () => {
+      if (studyRunning) {
+        userStopped = true;
+        stopping = true;
+        setStudyButtons();
+        studyResult.classList.remove('error');
+        studyResult.textContent = '正在停止学习任务…';
+        try {
+          await mygo.call('Bridge.StopStudy');
+        } catch (error) {
+          studyResult.classList.add('error');
+          studyResult.textContent = errorText(error);
+        }
+        return;
+      }
+      const ids = courseCheckboxes().filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
+      if (!ids.length) { studyResult.textContent = '请先选择课程。'; return; }
+      studyRunning = true;
+      userStopped = false;
+      stopping = false;
+      updateCourseSelection();
+      setStudyButtons();
+      studyResult.classList.remove('error');
+      studyResult.textContent = '正在执行课程任务…';
+      runToken += 1;
+      resetLog();
+      const poll = setInterval(requestLogUpdate, 800);
+      try {
+        await mygo.call('Bridge.Study', value('config'), ids);
+        await requestLogUpdate();
+        setLogState('done');
+        studyResult.textContent = '课程任务已完成。';
+      } catch (error) {
+        await requestLogUpdate();
+        if (userStopped) {
+          setLogState('stopped');
+          studyResult.textContent = '学习任务已停止。';
+        } else {
+          setLogState('failed');
+          studyResult.classList.add('error');
+          studyResult.textContent = errorText(error);
+        }
+        if (!latestChapters.length) logPanel.hidden = true;
+      } finally {
+        clearInterval(poll);
+        studyRunning = false;
+        stopping = false;
+        updateCourseSelection();
+        setStudyButtons();
+      }
+    });
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submit.disabled = true;
+      result.classList.remove('error');
+      result.textContent = '正在查询…';
+      try {
+        const answer = await mygo.call('Bridge.Ask', {
+          config: value('config'),
+          title: value('title'),
+          type: value('type'),
+          options: value('options').split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
+          course: value('course'),
+          useCache: document.getElementById('use-cache').checked,
+        });
+        result.textContent = answer;
+      } catch (error) {
+        result.classList.add('error');
+        result.textContent = errorText(error);
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    updateCourseSelection();
+    setStudyButtons();
+  </script>
+</body>
+</html>

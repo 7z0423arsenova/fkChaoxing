@@ -1,0 +1,33 @@
+# Rust 与 MyGo 构建产物
+/target/
+/desktop/build/
+/desktop/.mygo/
+/desktop/desktop
+/desktop/desktop.exe
+/desktop/resources/*/bin/fkChaoxing-core*
+
+# 本地账号、会话与运行记录（任意目录都不要提交）
+config.ini
+config.local.ini
+cookies.txt
+cache.json
+fkChaoxing.log*
+selected-config.json
+.env
+.env.local
+myConfig/
+logs/
+saves/
+
+# HAR 抓包和验证页面可能包含 Cookie/会话信息，默认不提交
+*.har
+verification-*.html
+
+# 原子写入留下的临时文件
+cookies.txt.tmp.*
+cache.json.tmp.*
+
+# 编辑器文件
+/.idea/
+/.vscode/
+/.workbuddy/

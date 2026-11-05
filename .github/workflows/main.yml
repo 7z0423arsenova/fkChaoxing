@@ -1,0 +1,62 @@
+name: Desktop CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-amd64
+          - os: macos-latest
+            platform: macos-native
+          - os: windows-latest
+            platform: windows-amd64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: rustup default stable
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: desktop/go.mod
+          cache-dependency-path: desktop/go.sum
+
+      - name: Test Rust core
+        run: cargo test --locked
+
+      - name: Test desktop bridge
+        working-directory: desktop
+        run: go test ./...
+
+      - name: Vet desktop bridge
+        working-directory: desktop
+        run: go vet ./...
+
+      - name: Build desktop package (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: sh desktop/build-local.sh
+
+      - name: Stage Rust core (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cargo build --release --locked
+          New-Item -ItemType Directory -Force desktop/resources/windows-amd64/bin | Out-Null
+          Copy-Item target/release/fkChaoxing.exe desktop/resources/windows-amd64/bin/fkChaoxing-core.exe
+
+      - name: Build desktop package (Windows)
+        if: runner.os == 'Windows'
+        working-directory: desktop
+        run: go run github.com/egoist/mygo/cmd/mygo build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fkChaoxing-${{ matrix.platform }}
+          path: desktop/build/

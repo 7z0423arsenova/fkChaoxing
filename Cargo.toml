@@ -1,0 +1,65 @@
+[package]
+name = "fkchaoxing"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "超星学习通 Rust 核心：课程任务、题库查询与桌面桥接"
+license = "GPL-3.0-only"
+readme = "README.md"
+publish = false
+
+[[bin]]
+name = "fkChaoxing"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1.47", features = ["rt-multi-thread", "macros", "time", "sync", "signal", "net", "io-util", "process"] }
+reqwest = { version = "0.13", default-features = false, features = [
+    "rustls-no-provider",
+    "http2",
+    "charset",
+    "json",
+    "query",
+    "form",
+    "cookies",
+    "socks",
+    "gzip",
+    "brotli",
+    "deflate",
+] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+reqwest_cookie_store = "0.10"
+cookie_store = "0.22"
+url = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+scraper = "0.29"
+regex = "1.11"
+clap = { version = "4.5", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi", "std", "chrono", "registry"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+indicatif = "0.18"
+md-5 = "0.10"
+aes = "0.8"
+cbc = { version = "0.1", features = ["alloc"] }
+base64 = "0.22"
+rand = "0.9"
+ttf-parser = "0.25"
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
+
+[build-dependencies]
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
+
+[target.'cfg(windows)'.dependencies]
+nu-ansi-term = "0.50"
+
+[dev-dependencies]
+tokio = { version = "1.47", features = ["test-util"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = true
