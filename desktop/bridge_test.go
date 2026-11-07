@@ -118,6 +118,9 @@ func TestCoursesRunsRelativeCorePathFromDataDirectory(t *testing.T) {
 	dataDir := t.TempDir()
 	mygo.App.SetPath(mygo.PathUserData, dataDir)
 	t.Cleanup(func() { mygo.App.SetPath(mygo.PathUserData, "") })
+	// Windows cannot make a path relative across drives, and the test binary lives
+	// in the system temp directory. Run from there so the core path can be relative.
+	t.Chdir(t.TempDir())
 	core, err := filepath.Rel(mustWorkingDirectory(t), os.Args[0])
 	if err != nil {
 		t.Fatal(err)
